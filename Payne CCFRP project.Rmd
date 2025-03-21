@@ -1,0 +1,160 @@
+---
+title: "Payne Project"
+author: "Konnor Payne"
+date: "11/22/2022"
+output: word_document
+---
+
+```{r}
+library(arm)
+#import that data 
+goph=read.csv("Bayesian Inference/Data/GPRdata-clean.csv")
+#subsets
+#point lobos
+pl=subset(goph, area=="0")
+  #PL MPA
+  pl.mpa=subset(pl, site=="1")
+  #PL REF
+  pl.ref=subset(pl, site=="0")
+#ano nuevo
+an=subset(goph, area=="1")
+  #AN MPA
+  an.mpa=subset(an, site=="1")
+  #AN REF
+  an.ref=subset(an, site=="0")
+```
+
+
+```{r}
+#Point Lobos 
+#linear model for MPA
+fit.pl.mpa=lm(length~1+year, data=pl.mpa)
+samp1=sim(fit.pl.mpa, n.sim=10000)
+beta.samp1=coef(samp1)
+sigma.samp1=samp1@sigma
+#setting the beta variables 
+beta1.0=beta.samp1[,1]
+beta1.1=beta.samp1[,2]
+#slope of line depends only on beta1
+mean(beta1.1)
+quantile(beta1.1, prob=c(0.025, 0.975))
+```
+
+```{r}
+#linear model for REF
+fit.pl.ref=lm(length~1+year, data=pl.ref)
+samp2=sim(fit.pl.ref, n.sim=10000)
+beta.samp2=coef(samp2)
+sigma.samp2=samp2@sigma
+#setting the beta variables 
+beta2.0=beta.samp2[,1]
+beta2.1=beta.samp2[,2]
+#slope of line depends only on beta1
+mean(beta2.1)
+quantile(beta2.1, prob=c(0.025, 0.975))
+```
+
+```{r}
+#probability that the MPA slope is higher than REF
+mean(beta1.1>beta2.1)
+```
+
+
+```{r}
+#plot
+#Point Lobos MPA variables 
+pl.mpa.b0=mean(beta1.0)
+pl.mpa.b1=mean(beta1.1)
+pl.mpa.year=c(2007:2020)
+#total set variables
+pl.year=pl$year
+pl.length=pl$length
+#mpa trendlines
+length.pl.mpa=pl.mpa.b0+pl.mpa.b1*pl.mpa.year
+#point lobos REF variables
+pl.ref.b0=mean(beta2.0)
+pl.ref.b1=mean(beta2.1)
+#ref trendline
+length.pl.ref=pl.ref.b0+pl.ref.b1*pl.mpa.year
+#plot
+plot(pl.year, pl.length, xlab=("Year"), ylab=("Length (cm)"), main=("Point Lobos Gopher Rockfish"))
+lines(pl.mpa.year, length.pl.mpa, col="red")
+lines(pl.mpa.year, length.pl.ref, col="blue")
+legend(2008, 15, legend=c("MPA", "REF"), fill=c("red", "blue"))
+```
+
+
+```{r}
+#Ano Nuevo
+#linear model for MPA
+fit.an.mpa=lm(length~1+year, data=an.mpa)
+samp3=sim(fit.an.mpa, n.sim=10000)
+beta.samp3=coef(samp3)
+sigma.samp3=samp3@sigma
+#setting the beta variables 
+
+beta3.0=beta.samp3[,1]
+beta3.1=beta.samp3[,2]
+#slope of line depends only on beta1
+mean(beta3.1)
+quantile(beta3.1, prob=c(0.025, 0.975))
+```
+
+```{r}
+#linear model for REF
+fit.an.ref=lm(length~1+year, data=an.ref)
+samp4=sim(fit.an.ref, n.sim=10000)
+beta.samp4=coef(samp4)
+sigma.samp4=samp4@sigma
+#setting the beta variables 
+beta4.0=beta.samp4[,1]
+beta4.1=beta.samp4[,2]
+#slope of line depends only on beta1
+mean(beta4.1)
+quantile(beta4.1, prob=c(0.025, 0.975))
+```
+
+```{r}
+#probability that the MPA slope is higher than REF
+mean(beta3.1>beta4.1)
+```
+
+
+```{r}
+#plot
+#Ano Nuevo MPA variables 
+an.mpa.b0=mean(beta3.0)
+an.mpa.b1=mean(beta3.1)
+an.year2=c(2007:2020)
+#total set variables
+an.year=an$year
+an.length=an$length
+#mpa trendlines
+length.an.mpa=an.mpa.b0+an.mpa.b1*an.year2
+#point lobos REF variables
+an.ref.b0=mean(beta4.0)
+an.ref.b1=mean(beta4.1)
+#ref trendline
+length.an.ref=an.ref.b0+an.ref.b1*an.year2
+#plot
+plot(an.year, an.length, xlab=("Year"), ylab=("Length (cm)"), main=("Año Nuevo Gopher Rockfish"))
+lines(an.year2, length.an.mpa, col="red")
+lines(an.year2, length.an.ref, col="blue")
+legend(2009, 40, legend=c("MPA", "REF"), fill=c("red", "blue"))
+```
+
+
+```{r}
+#probability of MPA effect higher in Ano Nuevo vs. Point Lobos
+mean(beta3.1>beta1.1)
+```
+
+
+```{r}
+#posterior predictive model for 2025 in Point Lobos MPA
+pl.post=pl.mpa.b0+pl.mpa.b1*2025
+pl.post
+#posterior predictive model for 2025 in Ano Nuevo MPA
+an.post=an.mpa.b0+an.mpa.b1*2025
+an.post
+```
