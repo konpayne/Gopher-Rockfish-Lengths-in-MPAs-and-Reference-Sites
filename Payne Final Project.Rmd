@@ -1,0 +1,154 @@
+---
+title: "Payne Final Project"
+author: "Konnor Payne"
+date: "11/29/2022"
+output: word_document
+---
+
+```{r}
+library(arm)
+#import that data 
+goph=read.csv("Bayesian Inference/Data/GPRdata-clean.csv")
+#subsets
+#point lobos
+pl=subset(goph, area=="0")
+#ano nuevo
+an=subset(goph, area=="1")
+```
+
+```{r}
+#Point Lobos 
+#linear model 
+fit.pl=lm(length~1+year+site+year:site, data=pl)
+samp1=sim(fit.pl, n.sim=10000)
+beta.samp1=coef(samp1)
+sigma.samp1=samp1@sigma
+#setting the beta variables 
+beta1.0=beta.samp1[,1]
+beta1.1=beta.samp1[,2]
+beta1.2=beta.samp1[,3]
+beta1.3=beta.samp1[,4]
+
+#MPA slope depends on beta1+beta3
+pl.mpa.slope=beta1.1+beta1.3
+mean(pl.mpa.slope)
+quantile(pl.mpa.slope, prob=c(0.025, 0.975))
+
+#REF slope depends on beta1
+pl.ref.slope=beta1.1
+mean(pl.ref.slope)
+quantile(pl.ref.slope, prob=c(0.025, 0.975))
+
+#probability that the MPA slope is greater than REF 
+mean(pl.mpa.slope>pl.ref.slope)
+
+#Point Lobos variables 
+pl.b0=mean(beta1.0)
+pl.b1=mean(beta1.1)
+pl.b2=mean(beta1.2)
+pl.b3=mean(beta1.3)
+pl.mpa.year=c(2007:2020)
+#total set variables
+pl.year=pl$year
+pl.site=pl$site
+pl.length=pl$length
+
+#mpa trendlines
+length.pl.mpa=pl.b0+pl.b2+(pl.b1+pl.b3)*pl.mpa.year
+#ref trendline
+length.pl.ref=pl.b0+pl.b1*pl.mpa.year
+
+#plot
+plot(pl.year, pl.length, xlab=("Year"), ylab=("Length (cm)"), main=("Point Lobos Gopher Rockfish"))
+lines(pl.mpa.year, length.pl.mpa, col="red")
+lines(pl.mpa.year, length.pl.ref, col="blue")
+legend(2008, 15, legend=c("MPA", "REF"), fill=c("red", "blue"))
+
+#posterior predictive model 
+#PL MPA
+pl.mpa.2025=beta1.0+beta1.2+(beta1.1+beta1.3)*2025
+mean(pl.mpa.2025)
+quantile(pl.mpa.2025, prob=c(0.025, 0.975))
+#PL REF
+pl.ref.2025=beta1.0+beta1.1*2025
+mean(pl.ref.2025)
+quantile(pl.ref.2025, prob=c(0.025, 0.975))
+#probability of MPA lengths greater than REF
+mean(pl.mpa.2025>pl.ref.2025)
+```
+
+
+
+
+```{r}
+#Ano Nuevo
+#linear model 
+fit.an=lm(length~1+year+site+year:site, data=an)
+samp2=sim(fit.an, n.sim=10000)
+beta.samp2=coef(samp2)
+sigma.samp2=samp2@sigma
+#setting the beta variables 
+beta2.0=beta.samp2[,1]
+beta2.1=beta.samp2[,2]
+beta2.2=beta.samp2[,3]
+beta2.3=beta.samp2[,4]
+
+#MPA slope depends on beta1+beta3
+an.mpa.slope=beta2.1+beta2.3
+mean(an.mpa.slope)
+quantile(an.mpa.slope, prob=c(0.025, 0.975))
+
+#REF slope depends on beta1
+an.ref.slope=beta2.1
+mean(an.ref.slope)
+quantile(an.ref.slope, prob=c(0.025, 0.975))
+
+#probabilty that the MPA slope is greater than REF 
+mean(an.mpa.slope>an.ref.slope)
+
+#Ano nuevo  variables 
+an.b0=mean(beta2.0)
+an.b1=mean(beta2.1)
+an.b2=mean(beta2.2)
+an.b3=mean(beta2.3)
+pl.mpa.year=c(2007:2020)
+#total set variables
+an.year=an$year
+an.site=an$site
+an.length=an$length
+
+#mpa trendlines
+length.an.mpa=an.b0+an.b2+(an.b1+an.b3)*pl.mpa.year
+#ref trendline
+length.an.ref=an.b0+an.b1*pl.mpa.year
+
+#plot
+plot(an.year, an.length, xlab=("Year"), ylab=("Length (cm)"), main=("Año Nuevo Gopher Rockfish"))
+lines(pl.mpa.year, length.an.mpa, col="red")
+lines(pl.mpa.year, length.an.ref, col="blue")
+legend(2008, 20, legend=c("MPA", "REF"), fill=c("red", "blue"))
+
+#posterior predictive model 
+#AN MPA
+an.mpa.2025=beta2.0+beta2.2+(beta2.1+beta2.3)*2025
+mean(an.mpa.2025)
+quantile(an.mpa.2025, prob=c(0.025, 0.975))
+#AN REF
+an.ref.2025=beta2.0+beta2.1*2025
+mean(an.ref.2025)
+quantile(an.ref.2025, prob=c(0.025, 0.975))
+#probability of MPA legnths greater than REF
+mean(an.mpa.2025>an.ref.2025)
+```
+
+```{r}
+#comparison of MPAs
+#probability of PL MPA slope greater than AN MPA slope 
+mean(pl.mpa.slope>an.mpa.slope)
+quantile(pl.mpa.slope>an.mpa.slope, prob=c(0.025, 0.975))
+
+#probability of PL MPA lengths in 2025 greater than AN MPA lengths in 2025
+mean(pl.mpa.2025>an.mpa.2025)
+quantile(pl.mpa.2025>an.mpa.2025, prob=c(0.025, 0.975))
+```
+
